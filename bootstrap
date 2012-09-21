@@ -1,0 +1,9 @@
+#!/bin/bash
+
+autoconf
+EXISTING_RUBY=ruby-1.9.3-p194
+SCRIBE_RUBY=ruby-1.9.3-scribe
+./configure --with-baseruby=/usr/local/rvm/rubies/$EXISTING_RUBY/bin/ruby --prefix=/usr/local/rvm/rubies/$SCRIBE_RUBY --disable-install-doc
+make -j6
+make install
+/usr/local/rvm/rubies/$SCRIBE_RUBY/bin/ruby -rrbconfig -e 'File.open(RbConfig::CONFIG["prefix"] + "/config","w") { |file| RbConfig::CONFIG.each_pair{|key,value| file.write("#{key.gsub(/\.|-/,"_")}=\"#{value.gsub("$","\\$")}\"\n")} }'
