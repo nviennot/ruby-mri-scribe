@@ -1818,6 +1818,8 @@ else
     AC_DEFINE_UNQUOTED(STACK_GROW_DIRECTION, $dir)
 fi
 
+LIBS="-lscribe $LIBS"
+
 if test x"$enable_pthread" = xyes; then
     for pthread_lib in thr pthread pthreads c c_r root; do
 	AC_CHECK_LIB($pthread_lib, pthread_kill,

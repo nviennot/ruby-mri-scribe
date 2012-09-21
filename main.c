@@ -19,7 +19,25 @@
 #include <stdlib.h>
 #endif
 
+#include <scribe.h>
+#include <sys/syscall.h>
+
 RUBY_GLOBAL_SETUP
+
+static void hook_scribe(void)
+{
+	int i;
+
+	scribe_disable_syscall(__NR_scribe_filter_syscall);
+	scribe_disable_syscall(__NR_get_scribe_flags);
+	scribe_disable_syscall(__NR_set_scribe_flags);
+	scribe_disable_syscall(__NR_scribe_send_event);
+	scribe_disable_syscall(__NR_scribe_recv_event);
+
+	set_scribe_flags(0, SCRIBE_PS_ENABLE_ALL & ~SCRIBE_PS_ENABLE_MM, SCRIBE_PERMANANT);
+	for (i = SCRIBE_FUTEX_FIRST; i <= SCRIBE_FUTEX_LAST; i++)
+		scribe_disable_syscall(i);
+}
 
 int
 main(int argc, char **argv)
@@ -30,6 +48,8 @@ main(int argc, char **argv)
 #ifdef HAVE_LOCALE_H
     setlocale(LC_CTYPE, "");
 #endif
+
+    hook_scribe();
 
     ruby_sysinit(&argc, &argv);
     {
