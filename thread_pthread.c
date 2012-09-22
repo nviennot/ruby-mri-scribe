@@ -25,6 +25,8 @@
 #include <sys/fcntl.h>
 #endif
 
+#include <scribe.h>
+
 static void native_mutex_lock(pthread_mutex_t *lock);
 static void native_mutex_unlock(pthread_mutex_t *lock);
 static int native_mutex_trylock(pthread_mutex_t *lock);
