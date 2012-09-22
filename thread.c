@@ -48,6 +48,7 @@
 #include "gc.h"
 #include "internal.h"
 #include "ruby/io.h"
+#include "scribe.h"
 
 #ifndef USE_NATIVE_THREAD_PRIORITY
 #define USE_NATIVE_THREAD_PRIORITY 0

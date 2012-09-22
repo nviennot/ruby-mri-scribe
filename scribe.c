@@ -21,6 +21,8 @@ void scribe_bootstrap(void)
 	scribe_disable_syscall(__NR_scribe_send_event);
 	scribe_disable_syscall(__NR_scribe_recv_event);
 
+	scribe_disable_syscall(__NR_set_robust_list);
+
 	scribe_end();
 }
 

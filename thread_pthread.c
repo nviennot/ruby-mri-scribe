@@ -25,8 +25,6 @@
 #include <sys/fcntl.h>
 #endif
 
-#include <scribe.h>
-
 static void native_mutex_lock(pthread_mutex_t *lock);
 static void native_mutex_unlock(pthread_mutex_t *lock);
 static int native_mutex_trylock(pthread_mutex_t *lock);
@@ -818,7 +816,12 @@ native_thread_create(rb_thread_t *th)
 static void
 native_thread_join(pthread_t th)
 {
-    int err = pthread_join(th, 0);
+    int err;
+
+    scribe_begin();
+    err = pthread_join(th, 0);
+    scribe_end();
+
     if (err) {
 	rb_raise(rb_eThreadError, "native_thread_join() failed (%d)", err);
     }
@@ -1128,6 +1131,8 @@ thread_timer(void *p)
     int result;
     struct timeval timeout;
 
+    scribe_end();
+
     if (TT_DEBUG) WRITE_CONST(2, "start timer thread\n");
 
     while (system_working > 0) {
@@ -1177,6 +1182,8 @@ thread_timer(void *p)
     }
 
     if (TT_DEBUG) WRITE_CONST(2, "finish timer thread\n");
+
+    scribe_begin();
     return NULL;
 }
 
@@ -1243,7 +1250,11 @@ rb_thread_create_timer_thread(void)
 	if (timer_thread_id) {
 	    rb_bug("rb_thread_create_timer_thread: Timer thread was already created\n");
 	}
+
+	scribe_begin();
 	err = pthread_create(&timer_thread_id, &attr, thread_timer, &GET_VM()->gvl);
+	scribe_end();
+
 	if (err != 0) {
 	    fprintf(stderr, "[FATAL] Failed to create timer thread (errno: %d)\n", err);
 	    exit(EXIT_FAILURE);

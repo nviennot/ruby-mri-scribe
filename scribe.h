@@ -1,6 +1,6 @@
 /**********************************************************************
 
-  scribe.c - record/replay engine
+  scribe.h - record/replay engine
 
   $Author: mame $
   created at: Fri Sep 21 14:50:06 EDT 2012

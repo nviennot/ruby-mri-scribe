@@ -15,6 +15,7 @@
 #include <errno.h>
 #include "ruby/encoding.h"
 #include "internal.h"
+#include "scribe.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -1944,6 +1945,9 @@ time_init_0(VALUE time)
     GetTimeval(time, tobj);
     tobj->tm_got=0;
     tobj->timew = WINT2FIXWV(0);
+
+    scribe_begin();
+
 #ifdef HAVE_CLOCK_GETTIME
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
 	rb_sys_fail("clock_gettime");
@@ -1958,6 +1962,9 @@ time_init_0(VALUE time)
         ts.tv_nsec = tv.tv_usec * 1000;
     }
 #endif
+
+    scribe_end();
+
     tobj->timew = timespec2timew(&ts);
 
     return time;
