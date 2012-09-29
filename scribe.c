@@ -15,17 +15,23 @@
 
 void scribe_bootstrap(void)
 {
+	int i;
+
 	scribe_disable_syscall(__NR_scribe_filter_syscall);
 	scribe_disable_syscall(__NR_get_scribe_flags);
 	scribe_disable_syscall(__NR_set_scribe_flags);
 	scribe_disable_syscall(__NR_scribe_send_event);
 	scribe_disable_syscall(__NR_scribe_recv_event);
 
-	scribe_disable_syscall(__NR_set_robust_list);
 	scribe_disable_syscall(__NR_mmap);
 	scribe_disable_syscall(__NR_mmap2);
 	scribe_disable_syscall(__NR_madvise);
 	scribe_disable_syscall(__NR_mprotect);
+	scribe_disable_syscall(__NR_mprotect);
+
+	scribe_disable_syscall(__NR_set_robust_list);
+	for (i = SCRIBE_FUTEX_FIRST; i <= SCRIBE_FUTEX_LAST; i++)
+		scribe_disable_syscall(i);
 
 	scribe_end();
 }
