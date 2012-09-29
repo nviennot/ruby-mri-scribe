@@ -635,6 +635,8 @@ native_thread_init_stack(rb_thread_t *th)
 static void *
 thread_start_func_1(void *th_ptr)
 {
+    scribe_end();
+
 #if USE_THREAD_CACHE
   thread_start:
 #endif
@@ -666,6 +668,8 @@ thread_start_func_1(void *th_ptr)
 	}
     }
 #endif
+
+    scribe_begin();
     return 0;
 }
 
@@ -806,7 +810,9 @@ native_thread_create(rb_thread_t *th)
 #endif
 	CHECK_ERR(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED));
 
+	scribe_begin();
 	err = pthread_create(&th->thread_id, &attr, thread_start_func_1, th);
+	scribe_end();
 	thread_debug("create: %p (%d)\n", (void *)th, err);
 	CHECK_ERR(pthread_attr_destroy(&attr));
     }
