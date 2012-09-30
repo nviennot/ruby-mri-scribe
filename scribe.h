@@ -17,4 +17,7 @@ void scribe_bootstrap(void);
 void scribe_begin(void);
 void scribe_end(void);
 
+void scribe_begin_restore(unsigned long *flags);
+void scribe_end_save(unsigned long *flags);
+
 #endif /* RUBY_SCRIBE_H */

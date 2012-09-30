@@ -1069,6 +1069,9 @@ void
 rb_thread_wakeup_timer_thread(void)
 {
     ssize_t result;
+    unsigned long flags;
+
+    scribe_end_save(&flags);
 
     /* already opened */
     if (timer_thread_pipe_owner_process == getpid()) {
@@ -1091,6 +1094,8 @@ rb_thread_wakeup_timer_thread(void)
     else {
 	/* ignore wakeup */
     }
+
+    scribe_begin_restore(&flags);
 }
 
 /* VM-dependent API is not available for this function */

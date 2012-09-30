@@ -46,3 +46,14 @@ void scribe_end(void)
 {
 	set_scribe_flags(0, SCRIBE_PS_ENABLE_SIGNAL, SCRIBE_PERMANANT);
 }
+
+void scribe_begin_restore(unsigned long *flags)
+{
+	set_scribe_flags(0, *flags, SCRIBE_PERMANANT);
+}
+
+void scribe_end_save(unsigned long *flags)
+{
+	get_scribe_flags(0, flags);
+	scribe_end();
+}
