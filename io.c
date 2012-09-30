@@ -734,25 +734,37 @@ internal_write_func(void *ptr)
 }
 
 static ssize_t
-rb_read_internal(int fd, void *buf, size_t count)
+rb_read_internal(int fd, void *buf, size_t count, int scribe)
 {
     struct io_internal_read_struct iis;
+    ssize_t ret;
+
     iis.fd = fd;
     iis.buf = buf;
     iis.capa = count;
 
-    return (ssize_t)rb_thread_io_blocking_region(internal_read_func, &iis, fd);
+    if (scribe) scribe_begin();
+    ret = (ssize_t)rb_thread_io_blocking_region(internal_read_func, &iis, fd);
+    if (scribe) scribe_end();
+
+    return ret;
 }
 
 static ssize_t
-rb_write_internal(int fd, const void *buf, size_t count)
+rb_write_internal(int fd, const void *buf, size_t count, int scribe)
 {
     struct io_internal_write_struct iis;
+    ssize_t ret;
+
     iis.fd = fd;
     iis.buf = buf;
     iis.capa = count;
 
-    return (ssize_t)rb_thread_io_blocking_region(internal_write_func, &iis, fd);
+    if (scribe) scribe_begin();
+    ret = (ssize_t)rb_thread_io_blocking_region(internal_write_func, &iis, fd);
+    if (scribe) scribe_end();
+
+    return ret;
 }
 
 static long
@@ -947,7 +959,8 @@ io_binwrite_string(VALUE arg)
 {
     struct binwrite_arg *p = (struct binwrite_arg *)arg;
     long l = io_writable_length(p->fptr, p->length);
-    return rb_write_internal(p->fptr->fd, p->ptr, l);
+    /* TODO Maybe it should sync ? */
+    return rb_write_internal(p->fptr->fd, p->ptr, l, FALSE);
 }
 
 static long
@@ -996,7 +1009,7 @@ io_binwrite(VALUE str, const char *ptr, long len, rb_io_t *fptr, int nosync)
 	}
 	else {
 	    long l = io_writable_length(fptr, n);
-	    r = rb_write_internal(fptr->fd, ptr+offset, l);
+	    r = rb_write_internal(fptr->fd, ptr+offset, l, TRUE);
 	}
 	/* xxx: other threads may modify given string. */
         if (r == n) return len;
@@ -1385,7 +1398,7 @@ io_fillbuf(rb_io_t *fptr)
     if (fptr->rbuf.len == 0) {
       retry:
 	{
-	    r = rb_read_internal(fptr->fd, fptr->rbuf.ptr, fptr->rbuf.capa);
+	    r = rb_read_internal(fptr->fd, fptr->rbuf.ptr, fptr->rbuf.capa, TRUE);
 	}
         if (r < 0) {
             if (rb_io_wait_readable(fptr->fd))
@@ -1722,7 +1735,7 @@ io_bufread(char *ptr, long len, rb_io_t *fptr)
     if (READ_DATA_PENDING(fptr) == 0) {
 	while (n > 0) {
           again:
-	    c = rb_read_internal(fptr->fd, ptr+offset, n);
+	    c = rb_read_internal(fptr->fd, ptr+offset, n, TRUE);
 	    if (c == 0) break;
 	    if (c < 0) {
                 if (rb_io_wait_readable(fptr->fd))
@@ -1756,6 +1769,7 @@ io_fread(VALUE str, long offset, rb_io_t *fptr)
 {
     long len;
 
+    /* TODO Lock string sync ? */
     rb_str_locktmp(str);
     len = io_bufread(RSTRING_PTR(str) + offset, RSTRING_LEN(str) - offset,
 		     fptr);
@@ -2090,7 +2104,7 @@ io_getpartial(int argc, VALUE *argv, VALUE io, int nonblock)
             rb_io_set_nonblock(fptr);
         }
 	rb_str_locktmp(str);
-	n = rb_read_internal(fptr->fd, RSTRING_PTR(str), len);
+	n = rb_read_internal(fptr->fd, RSTRING_PTR(str), len, TRUE);
 	rb_str_unlocktmp(str);
         if (n < 0) {
             if (!nonblock && rb_io_wait_readable(fptr->fd))
@@ -3615,7 +3629,7 @@ finish_writeconv(rb_io_t *fptr, int noalloc)
             res = rb_econv_convert(fptr->writeconv, NULL, NULL, &dp, de, 0);
             while (dp-ds) {
               retry:
-                r = rb_write_internal(fptr->fd, ds, dp-ds);
+                r = rb_write_internal(fptr->fd, ds, dp-ds, TRUE);
                 if (r == dp-ds)
                     break;
                 if (0 <= r) {
@@ -4105,7 +4119,7 @@ rb_io_syswrite(VALUE io, VALUE str)
         rb_io_check_closed(fptr);
     }
 
-    n = rb_write_internal(fptr->fd, RSTRING_PTR(str), RSTRING_LEN(str));
+    n = rb_write_internal(fptr->fd, RSTRING_PTR(str), RSTRING_LEN(str), TRUE);
 
     if (n == -1) rb_sys_fail_path(fptr->pathv);
 
@@ -4153,7 +4167,7 @@ rb_io_sysread(int argc, VALUE *argv, VALUE io)
     rb_io_check_closed(fptr);
 
     rb_str_locktmp(str);
-    n = rb_read_internal(fptr->fd, RSTRING_PTR(str), ilen);
+    n = rb_read_internal(fptr->fd, RSTRING_PTR(str), ilen, TRUE);
     rb_str_unlocktmp(str);
 
     if (n == -1) {
@@ -9060,7 +9074,7 @@ static ssize_t
 maygvl_read(int has_gvl, int fd, void *buf, size_t count)
 {
     if (has_gvl)
-        return rb_read_internal(fd, buf, count);
+        return rb_read_internal(fd, buf, count, FALSE);
     else
         return read(fd, buf, count);
 }
