@@ -28,6 +28,7 @@ void scribe_bootstrap(void)
 	scribe_disable_syscall(__NR_madvise);
 	scribe_disable_syscall(__NR_mprotect);
 	scribe_disable_syscall(__NR_mprotect);
+	scribe_disable_syscall(__NR_brk);
 
 	scribe_disable_syscall(__NR_set_robust_list);
 	for (i = SCRIBE_FUTEX_FIRST; i <= SCRIBE_FUTEX_LAST; i++)

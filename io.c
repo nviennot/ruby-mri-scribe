@@ -15,6 +15,7 @@
 #include "ruby/io.h"
 #include "dln.h"
 #include "internal.h"
+#include "scribe.h"
 #include <ctype.h>
 #include <errno.h>
 
@@ -4988,8 +4989,10 @@ rb_file_open_generic(VALUE io, VALUE filename, int oflags, int fmode, convconfig
     fptr->mode = fmode;
     fptr->encs = *convconfig;
     fptr->pathv = rb_str_new_frozen(filename);
+    scribe_begin();
     fptr->fd = rb_sysopen(fptr->pathv, oflags, perm);
     io_check_tty(fptr);
+    scribe_end();
     if (fmode & FMODE_SETENC_BY_BOM) io_set_encoding_by_bom(io);
 
     return io;
