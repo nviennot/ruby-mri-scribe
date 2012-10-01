@@ -959,8 +959,7 @@ io_binwrite_string(VALUE arg)
 {
     struct binwrite_arg *p = (struct binwrite_arg *)arg;
     long l = io_writable_length(p->fptr, p->length);
-    /* TODO Maybe it should sync ? */
-    return rb_write_internal(p->fptr->fd, p->ptr, l, FALSE);
+    return rb_write_internal(p->fptr->fd, p->ptr, l, TRUE);
 }
 
 static long
