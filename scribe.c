@@ -12,6 +12,7 @@
 #include "/usr/include/scribe.h" /* FIXME This is really gross */
 #include "scribe.h"
 #include <sys/syscall.h>
+#include <errno.h>
 
 void scribe_bootstrap(void)
 {
@@ -39,21 +40,29 @@ void scribe_bootstrap(void)
 
 void scribe_begin(void)
 {
+	unsigned long old_errno = errno;
 	set_scribe_flags(0, SCRIBE_PS_ENABLE_ALL & ~SCRIBE_PS_ENABLE_MM, SCRIBE_PERMANANT);
+	errno = old_errno;
 }
 
 void scribe_end(void)
 {
+	unsigned long old_errno = errno;
 	set_scribe_flags(0, SCRIBE_PS_ENABLE_SIGNAL, SCRIBE_PERMANANT);
+	errno = old_errno;
 }
 
 void scribe_begin_restore(unsigned long *flags)
 {
+	unsigned long old_errno = errno;
 	set_scribe_flags(0, *flags, SCRIBE_PERMANANT);
+	errno = old_errno;
 }
 
 void scribe_end_save(unsigned long *flags)
 {
+	unsigned long old_errno = errno;
 	get_scribe_flags(0, flags);
 	scribe_end();
+	errno = old_errno;
 }
