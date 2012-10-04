@@ -11,6 +11,7 @@
 
 #include "/usr/include/scribe.h" /* FIXME This is really gross */
 #include "scribe.h"
+#include <ruby/scribe.h>
 #include <sys/syscall.h>
 #include <errno.h>
 

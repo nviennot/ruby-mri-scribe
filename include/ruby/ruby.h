@@ -70,6 +70,8 @@ extern "C" {
 #pragma GCC visibility push(default)
 #endif
 
+#include "scribe.h"
+
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
 #else

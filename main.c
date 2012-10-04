@@ -19,8 +19,6 @@
 #include <stdlib.h>
 #endif
 
-#include "scribe.h"
-
 RUBY_GLOBAL_SETUP
 
 int
