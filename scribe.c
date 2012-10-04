@@ -14,6 +14,28 @@
 #include <ruby/scribe.h>
 #include <sys/syscall.h>
 #include <errno.h>
+#include <string.h>
+
+static void scribe_msg(const char *msg)
+{
+	char buffer[1024]; /* FIXME gross and smelly */
+
+	if (scribe_is_recording()) {
+		struct scribe_event_nop *nop = (void *)buffer;
+		struct scribe_event_data *data = (void *)nop->extra;
+
+		data->h.h.type = SCRIBE_EVENT_DATA;
+		data->h.size = strlen(msg);
+		memcpy(data->data, msg, data->h.size);
+
+		nop->h.h.type = SCRIBE_EVENT_NOP;
+		nop->h.size = sizeof_event((void *)data);
+
+		scribe_send_event((void *)nop);
+	} else if (scribe_is_replaying()) {
+		scribe_recv_event((void *)buffer, sizeof(buffer));
+	}
+}
 
 void scribe_bootstrap(void)
 {
@@ -37,6 +59,7 @@ void scribe_bootstrap(void)
 		scribe_disable_syscall(i);
 
 	scribe_end();
+	scribe_msg("Scribe hooked");
 }
 
 void scribe_begin(void)
