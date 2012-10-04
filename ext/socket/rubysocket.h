@@ -5,6 +5,7 @@
 #include "ruby/io.h"
 #include "ruby/util.h"
 #include "internal.h"
+#include "scribe.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>

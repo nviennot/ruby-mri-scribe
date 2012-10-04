@@ -57,6 +57,7 @@ rsock_init_sock(VALUE sock, int fd)
 #endif
 
     MakeOpenFile(sock, fp);
+    fp->scribed = 1;
     fp->fd = fd;
     fp->mode = FMODE_READWRITE|FMODE_DUPLEX;
     rb_io_ascii8bit_binmode(sock);
@@ -451,7 +452,9 @@ rsock_s_accept_nonblock(VALUE klass, rb_io_t *fptr, struct sockaddr *sockaddr, s
 
     rb_secure(3);
     rb_io_set_nonblock(fptr);
+    scribe_begin();
     fd2 = accept(fptr->fd, (struct sockaddr*)sockaddr, len);
+    scribe_end();
     if (fd2 < 0) {
 	switch (errno) {
 	  case EAGAIN:
@@ -481,7 +484,11 @@ static VALUE
 accept_blocking(void *data)
 {
     struct accept_arg *arg = data;
-    return (VALUE)accept(arg->fd, arg->sockaddr, arg->len);
+    int ret;
+    scribe_begin();
+    ret = (VALUE)accept(arg->fd, arg->sockaddr, arg->len);
+    scribe_end();
+    return ret;
 }
 
 VALUE

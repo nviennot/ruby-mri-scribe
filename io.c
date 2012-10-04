@@ -3721,8 +3721,12 @@ fptr_finalize(rb_io_t *fptr, int noraise)
         /* fptr->fd may be closed even if close fails.
          * POSIX doesn't specify it.
          * We assumes it is closed.  */
+	if (fptr->scribed)
+		scribe_begin();
         if (close(fptr->fd) < 0 && NIL_P(err))
             err = noraise ? Qtrue : INT2NUM(errno);
+	if (fptr->scribed)
+		scribe_end();
     }
   skip_fd_close:
     fptr->fd = -1;
@@ -7676,8 +7680,12 @@ static VALUE
 select_call(VALUE arg)
 {
     struct select_args *p = (struct select_args *)arg;
+    VALUE ret;
 
-    return select_internal(p->read, p->write, p->except, p->timeout, p->fdsets);
+    scribe_begin();
+    ret = select_internal(p->read, p->write, p->except, p->timeout, p->fdsets);
+    scribe_end();
+    return ret;
 }
 
 static VALUE
